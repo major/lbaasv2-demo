@@ -15,12 +15,12 @@ Demo: Load balancer provisioning
 .. code-block:: console
 
   neutron lbaas-loadbalancer-create --name demolb01 public
-  neutron port-update --security-group open VIP_PORT_ID
+  neutron port-update --security-group open $(neutron lbaas-loadbalancer-show -f value -c vip_port_id demolb01)
   neutron lbaas-listener-create --name demolb01-listener-80 --loadbalancer demolb01 --protocol HTTP --protocol-port 80
   neutron lbaas-pool-create --lb-algorithm ROUND_ROBIN --protocol HTTP --name demolb01-pool --listener demolb01-listener-80
   neutron lbaas-member-create --subnet public --address 10.127.121.92 --protocol-port 80 demolb01-pool
   neutron lbaas-member-create --subnet public --address 10.127.121.93 --protocol-port 80 demolb01-pool
-  curl VIP_ADDRESS
+  curl $(neutron lbaas-loadbalancer-show -f value -c vip_address demolb01)
 
 Demo: Add health checks to pool
 -------------------------------
@@ -32,8 +32,18 @@ Demo: Add health checks to pool
 .. code-block:: console
 
   neutron lbaas-healthmonitor-create --delay 5 --max-retries 2 --timeout 10 --type HTTP --pool demolb01-pool
-  neutron lbaas-healthmonitor-list
-  neutron lbaas-healthmonitor-delete UUID
+  neutron lbaas-healthmonitor-show $(neutron lbaas-healthmonitor-list -f value -c id)
+  neutron lbaas-healthmonitor-delete $(neutron lbaas-healthmonitor-list -f value -c id)
+
+Demo: Inspect the load balancer
+-------------------------------
+
+* Determine which agent has the load balancer
+* Look around inside the namespace
+
+.. code-block:: console
+
+  neutron lbaas-agent-hosting-loadbalancer demolb01
 
 Demo: Two listeners on one load balancer
 ----------------------------------------
